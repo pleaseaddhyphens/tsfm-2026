@@ -232,6 +232,9 @@ Uni_algo_HP_dict = {
     },
     'MOMENT_FT': {
         'win_size': [64, 128, 256]
+    },
+    'Custom_AD': {
+        'HP': ['HP']
     }
 }
 
@@ -277,4 +280,5 @@ Optimal_Uni_algo_HP_dict = {
     'TSPulse_FT': {'win_size': 96, 
                    'prediction_mode': 'time',
                    'lr': 1e-4},
+    'Custom_AD': {'HP': ['HP']},
 }
