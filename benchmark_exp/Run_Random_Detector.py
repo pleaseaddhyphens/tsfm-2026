@@ -13,7 +13,7 @@ from TSB_AD.utils.slidingWindows import find_length_rank
 from TSB_AD.models.base import BaseDetector
 from TSB_AD.utils.utility import zscore
 
-class Custom_AD(BaseDetector):
+class RandomDetector(BaseDetector):
 
     def __init__(self, HP, normalize=True):
         super().__init__()
@@ -21,29 +21,7 @@ class Custom_AD(BaseDetector):
         self.normalize = normalize
 
     def fit(self, X, y=None):
-        """Fit detector. y is ignored in unsupervised methods.
-
-        Parameters
-        ----------
-        X : numpy array of shape (n_samples, n_features)
-            The input samples.
-
-        y : Ignored
-            Not used, present for API consistency by convention.
-
-        Returns
-        -------
-        self : object
-            Fitted estimator.
-        """
-        n_samples, n_features = X.shape
-        if self.normalize:
-            X = zscore(X, axis=1, ddof=1)
-
-        # Randomly assign an anomaly score in [0, 1) to each time step
-        # Larger values still indicate more anomalous points, but scores
-        # are independent of the actual input values by design.
-        self.decision_scores_ = np.random.rand(n_samples)
+        """Fit detector. y is ignored in unsupervised methods"""
         return self
 
     def decision_function(self, X):
@@ -75,15 +53,15 @@ class Custom_AD(BaseDetector):
         return scores
 
 
-def run_Custom_AD_Unsupervised(data, HP):
-    clf = Custom_AD(HP=HP)
+def run_RandomDetector_Unsupervised(data, HP):
+    clf = RandomDetector(HP=HP)
     clf.fit(data)
     score = clf.decision_scores_
     score = MinMaxScaler(feature_range=(0,1)).fit_transform(score.reshape(-1,1)).ravel()
     return score
 
-def run_Custom_AD_Semisupervised(data_train, data_test, HP):
-    clf = Custom_AD(HP=HP)
+def run_RandomDetector_Semisupervised(data_train, data_test, HP):
+    clf = RandomDetector(HP=HP)
     clf.fit(data_train)
     score = clf.decision_function(data_test)
     score = MinMaxScaler(feature_range=(0,1)).fit_transform(score.reshape(-1,1)).ravel()
@@ -93,13 +71,13 @@ if __name__ == '__main__':
 
     Start_T = time.time()
     ## ArgumentParser
-    parser = argparse.ArgumentParser(description='Running Custom_AD')
+    parser = argparse.ArgumentParser(description='Running RandomDetector')
     parser.add_argument('--filename', type=str, default='001_NAB_id_1_Facility_tr_1007_1st_2014.csv')
     parser.add_argument('--data_direc', type=str, default='../Datasets/TSB-AD-U/')
-    parser.add_argument('--AD_Name', type=str, default='Custom_AD')
+    parser.add_argument('--AD_Name', type=str, default='RandomDetector')
     args = parser.parse_args()
 
-    Custom_AD_HP = {
+    RandomDetector_HP = {
         'HP': ['HP'],
     }
 
@@ -115,8 +93,8 @@ if __name__ == '__main__':
 
     start_time = time.time()
 
-    output = run_Custom_AD_Semisupervised(data_train, data, **Custom_AD_HP)
-    # output = run_Custom_AD_Unsupervised(data, **Custom_AD_HP)
+    output = run_RandomDetector_Semisupervised(data_train, data, **RandomDetector_HP)
+    # output = run_RandomDetector_Unsupervised(data, **RandomDetector_HP)
 
     end_time = time.time()
     run_time = end_time - start_time

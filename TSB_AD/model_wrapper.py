@@ -5,7 +5,7 @@ from .utils.slidingWindows import find_length_rank
 Unsupervise_AD_Pool = ['FFT', 'SR', 'NORMA', 'Series2Graph', 'Sub_IForest', 'IForest', 'LOF', 'Sub_LOF', 'POLY', 'MatrixProfile', 'Sub_PCA', 'PCA', 'HBOS', 
                         'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'MOMENT_ZS', 'TSPulse_ZS']
 Semisupervise_AD_Pool = ['Left_STAMPi', 'SAND', 'MCD', 'Sub_MCD', 'OCSVM', 'Sub_OCSVM', 'AutoEncoder', 'CNN', 'LSTMAD', 'TranAD', 'USAD', 'OmniAnomaly', 
-                        'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', 'TSPulse_FT', 'Custom_AD']
+                        'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', 'TSPulse_FT', 'RandomDetector']
 
 def run_Unsupervise_AD(model_name, data, **kwargs):
     try:
@@ -461,16 +461,16 @@ def run_TSPulse_FT(data_train,
     return score.ravel()
 
 
-def run_Custom_AD(data_train, data_test, HP=None, **kwargs):
+def run_RandomDetector(data_train, data_test, HP=None, **kwargs):
     """
     Random baseline anomaly detector integrated into the TSB-AD framework.
 
-    This wraps the `Custom_AD` implementation from `benchmark_exp/Run_Custom_Detector.py`
+    This wraps the `RandomDetector` implementation from `benchmark_exp/Run_Custom_Detector.py`
     and exposes it through the standard semisupervised `run_<model_name>` interface.
     """
-    from benchmark_exp.Run_Custom_Detector import Custom_AD
+    from benchmark_exp.Run_Random_Detector import RandomDetector
 
-    clf = Custom_AD(HP=HP)
+    clf = RandomDetector(HP=HP)
     clf.fit(data_train)
     score = clf.decision_function(data_test)
     return score.ravel()
