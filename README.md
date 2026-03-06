@@ -41,19 +41,21 @@ For instructions on the installation of Foundation Models, please refer to ./TSB
 
 It would run PCA algorithm on the `.\Datasets\TSB-AD-U\001_NAB_id_1_Facility_tr_1007_1st_2014.csv` and calculate all defined metrics.
 
-output example:
-
-` {'AUC-PR': 0.7956508501129314, 'AUC-ROC': 0.9059292449548768, 'VUS-PR': 0.8136138874982192, 'VUS-ROC': 0.9357317496173422, 'Standard-F1': 0.8284740249663477, 'PA-F1': 1.0, 'Event-based-F1': 0.9999999999999996, 'R-based-F1': 0.759779845496952, 'Affiliation-F': 0.996308430785461}`
 
 ```bash
 python -m TSB_AD.main --AD_Name PCA
 ```
 
+Output example:
+
+` {'AUC-PR': 0.7956508501129314, 'AUC-ROC': 0.9059292449548768, 'VUS-PR': 0.8136138874982192, 'VUS-ROC': 0.9357317496173422, 'Standard-F1': 0.8284740249663477, 'PA-F1': 1.0, 'Event-based-F1': 0.9999999999999996, 'R-based-F1': 0.759779845496952, 'Affiliation-F': 0.996308430785461}`
+
+
 # How to add new anomaly detector
 
 1. Implement new detector class that inherits BaseDetector class (see example at RandomDetector)
 2. Define the function in `TSB_AD\model_wrapper.py` that would call new detector class.
-3. Add the new class name ot the either `Unsupervise_AD_Pool` or `Semisupervise_AD_Pool`
+3. Add the new class name to  `Unsupervise_AD_Pool` or `Semisupervise_AD_Pool`
 4. Add detector's hyperparameters to the `TSB_AD\HP_list.py`. If no hyperparameters required leave the filler (see RandomDetector)
 
 
@@ -63,6 +65,11 @@ python -m TSB_AD.main --AD_Name PCA
 See Implementation in `TSB_AD/models`
 
 We organize the detection algorithms in TSB-AD in the following three categories and arrange these algorithms chronologically within each category.
+#### BaseLine Method
+
+| Algorithm    | Description|
+|:--|:---------|
+|RandomDetector| Randomly assign anomaly score (0,1) to each datapoint from uniform distribution. Implemented as the custom class.|
 
 #### (i) Statistical Method
 
