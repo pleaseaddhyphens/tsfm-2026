@@ -21,15 +21,18 @@ class RandomDetector(BaseDetector):
         self.normalize = normalize
 
     def fit(self, X, y=None):
-        """Fit detector. y is ignored in unsupervised methods"""
+        """Fit detector. y is ignored in unsupervised methods.
+
+        For the random baseline, `fit` simply assigns a random score to each
+        sample in `X` and stores it in `decision_scores_`, matching the
+        unsupervised interface used in the TSB-AD framework.
+        """
+        n_samples, _ = X.shape
+        self.decision_scores_ = np.random.rand(n_samples)
         return self
 
     def decision_function(self, X):
-        """Predict raw anomaly score of X using the fitted detector.
-
-        The anomaly score of an input sample is computed based on different
-        detector algorithms. For consistency, outliers are assigned with
-        larger anomaly scores.
+        """This is not used by RandomDetector the BaseDetector requires that method to be implemented.
 
         Parameters
         ----------
@@ -43,11 +46,6 @@ class RandomDetector(BaseDetector):
             The anomaly score of the input samples.
         """
         n_samples, n_features = X.shape
-
-        # If the detector has been fitted, reuse its RNG behaviour by
-        # drawing a fresh random score for each sample. This keeps the
-        # interface consistent with other detectors while implementing
-        # a purely random baseline.
         scores = np.random.rand(n_samples)
         self.decision_scores_ = scores
         return scores
@@ -60,12 +58,13 @@ def run_RandomDetector_Unsupervised(data, HP):
     score = MinMaxScaler(feature_range=(0,1)).fit_transform(score.reshape(-1,1)).ravel()
     return score
 
-def run_RandomDetector_Semisupervised(data_train, data_test, HP):
-    clf = RandomDetector(HP=HP)
-    clf.fit(data_train)
-    score = clf.decision_function(data_test)
-    score = MinMaxScaler(feature_range=(0,1)).fit_transform(score.reshape(-1,1)).ravel()
-    return score
+# semisupervised interface not required in current implementation 
+# def run_RandomDetector_Semisupervised(data_train, data_test, HP):
+#     clf = RandomDetector(HP=HP)
+#     clf.fit(data_train)
+#     score = clf.decision_function(data_test)
+#     score = MinMaxScaler(feature_range=(0,1)).fit_transform(score.reshape(-1,1)).ravel()
+#     return score
 
 if __name__ == '__main__':
 
@@ -87,14 +86,10 @@ if __name__ == '__main__':
     print('data: ', data.shape)
     print('label: ', label.shape)
 
-    slidingWindow = find_length_rank(data, rank=1)
-    train_index = args.filename.split('.')[0].split('_')[-3]
-    data_train = data[:int(train_index), :]
-
     start_time = time.time()
 
-    output = run_RandomDetector_Semisupervised(data_train, data, **RandomDetector_HP)
-    # output = run_RandomDetector_Unsupervised(data, **RandomDetector_HP)
+    # Use the unsupervised variant of the random detector by default
+    output = run_RandomDetector_Unsupervised(data, **RandomDetector_HP)
 
     end_time = time.time()
     run_time = end_time - start_time

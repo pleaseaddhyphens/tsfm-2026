@@ -3,9 +3,9 @@ import math
 from .utils.slidingWindows import find_length_rank
 
 Unsupervise_AD_Pool = ['FFT', 'SR', 'NORMA', 'Series2Graph', 'Sub_IForest', 'IForest', 'LOF', 'Sub_LOF', 'POLY', 'MatrixProfile', 'Sub_PCA', 'PCA', 'HBOS', 
-                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'MOMENT_ZS', 'TSPulse_ZS']
+                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'MOMENT_ZS', 'TSPulse_ZS', 'RandomDetector']
 Semisupervise_AD_Pool = ['Left_STAMPi', 'SAND', 'MCD', 'Sub_MCD', 'OCSVM', 'Sub_OCSVM', 'AutoEncoder', 'CNN', 'LSTMAD', 'TranAD', 'USAD', 'OmniAnomaly', 
-                        'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', 'TSPulse_FT', 'RandomDetector']
+                        'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', 'TSPulse_FT']
 
 def run_Unsupervise_AD(model_name, data, **kwargs):
     try:
@@ -461,16 +461,19 @@ def run_TSPulse_FT(data_train,
     return score.ravel()
 
 
-def run_RandomDetector(data_train, data_test, HP=None, **kwargs):
+def run_RandomDetector(data, HP=None, **kwargs):
     """
-    Random baseline anomaly detector integrated into the TSB-AD framework.
+    Random baseline anomaly detector integrated into the TSB-AD framework
+    as an **unsupervised** model.
 
-    This wraps the `RandomDetector` implementation from `benchmark_exp/Run_Custom_Detector.py`
-    and exposes it through the standard semisupervised `run_<model_name>` interface.
+    This wraps the `RandomDetector` implementation from
+    `benchmark_exp/Run_Random_Detector.py` and exposes it through the
+    standard unsupervised `run_<model_name>` interface, where `fit`
+    populates `decision_scores_` on the provided data.
     """
     from benchmark_exp.Run_Random_Detector import RandomDetector
 
     clf = RandomDetector(HP=HP)
-    clf.fit(data_train)
-    score = clf.decision_function(data_test)
+    clf.fit(data)
+    score = clf.decision_scores_
     return score.ravel()
