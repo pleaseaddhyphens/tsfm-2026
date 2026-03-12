@@ -43,7 +43,7 @@ It would run PCA algorithm on the `.\Datasets\TSB-AD-U\001_NAB_id_1_Facility_tr_
 
 
 ```bash
-python -m TSB_AD.main --AD_Name PCA
+python -m TSB_AD.main --AD_Name Sub_PCA
 ```
 
 Output example:

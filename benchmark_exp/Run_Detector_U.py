@@ -29,8 +29,8 @@ if __name__ == '__main__':
     Start_T = time.time()
     ## ArgumentParser
     parser = argparse.ArgumentParser(description='Generating Anomaly Score')
-    parser.add_argument('--dataset_dir', type=str, default='../Datasets/TSB-AD-U/')
-    parser.add_argument('--file_lsit', type=str, default='../Datasets/File_List/TSB-AD-U-Eva.csv')
+    parser.add_argument('--dataset_dir', type=str, default='./Datasets/TSB-AD-U/')
+    parser.add_argument('--file_list', type=str, default='./Datasets/File_List/no_seq_anomaly_files.csv')
     parser.add_argument('--score_dir', type=str, default='eval/score/uni/')
     parser.add_argument('--save_dir', type=str, default='eval/metrics/uni/')
     parser.add_argument('--save', type=bool, default=False)
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     os.makedirs(target_dir, exist_ok = True)
     logging.basicConfig(filename=f'{target_dir}/000_run_{args.AD_Name}.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    file_list = pd.read_csv(args.file_lsit)['file_name'].values
+    file_list = pd.read_csv(args.file_list)['file_name'].values
     Optimal_Det_HP = Optimal_Uni_algo_HP_dict[args.AD_Name]
     print('Optimal_Det_HP: ', Optimal_Det_HP)
 

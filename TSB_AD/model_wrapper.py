@@ -3,7 +3,7 @@ import math
 from .utils.slidingWindows import find_length_rank
 
 Unsupervise_AD_Pool = ['FFT', 'SR', 'NORMA', 'Series2Graph', 'Sub_IForest', 'IForest', 'LOF', 'Sub_LOF', 'POLY', 'MatrixProfile', 'Sub_PCA', 'PCA', 'HBOS', 
-                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'MOMENT_ZS', 'TSPulse_ZS', 'RandomDetector']
+                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'Chronos2', 'Chronos2Fast', 'Chronos2Prob', 'MOMENT_ZS', 'TSPulse_ZS', 'RandomDetector']
 Semisupervise_AD_Pool = ['Left_STAMPi', 'SAND', 'MCD', 'Sub_MCD', 'OCSVM', 'Sub_OCSVM', 'AutoEncoder', 'CNN', 'LSTMAD', 'TranAD', 'USAD', 'OmniAnomaly', 
                         'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', 'TSPulse_FT']
 
@@ -477,3 +477,56 @@ def run_RandomDetector(data, HP=None, **kwargs):
     clf.fit(data)
     score = clf.decision_scores_
     return score.ravel()
+
+def run_Chronos2(data, win_size=128, stride=1, device="cpu"):
+    from .models.Chronos2Detector import Chronos2Detector
+
+    clf = Chronos2Detector(
+        win_size=win_size,
+        prediction_length=1,
+        input_c=data.shape[1],
+        stride=stride,
+        device=device
+    )
+
+    clf.fit(data)
+
+    score = clf.decision_scores_
+
+    return score.ravel()
+
+def run_Chronos2Fast(data, win_size=128, stride=1, device="cpu"):
+    from .models.Chronos2Fast import Chronos2Fast
+
+    detector = Chronos2Fast(
+        context_len=win_size,
+        pred_len=1,
+        stride=stride,
+        device=device
+    )
+
+    scores = detector.score(data[:, 0])
+
+    padded = np.zeros(len(data))
+    padded[win_size:] = scores
+
+    return padded.ravel()
+
+
+def run_Chronos2Prob(data, win_size=128, stride=1, device="cpu"):
+    from .models.Chronos2AnomalyDetector import Chronos2AnomalyDetector
+
+    detector = Chronos2AnomalyDetector(
+        context_len=win_size,
+        pred_len=1,
+        stride=stride,
+        device=device,
+        probabilistic=True
+    )
+
+    scores = detector.score(data[:, 0])
+
+    padded = np.zeros(len(data))
+    padded[win_size:] = scores
+
+    return padded.ravel()

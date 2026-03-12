@@ -224,6 +224,15 @@ Uni_algo_HP_dict = {
     'Chronos': {
         'win_size': [50, 100, 150]
     },
+    'Chronos2': {
+        'win_size': [50, 100, 150]
+    },
+    'Chronos2Fast': {
+        'win_size': [50, 100, 150]
+    },
+    'Chronos2Prob': {
+        'win_size': [50, 100, 150]
+    },
     'TimesFM': {
         'win_size': [32, 64, 96]
     },
@@ -271,6 +280,9 @@ Optimal_Uni_algo_HP_dict = {
     'OFA': {'win_size': 50},
     'Lag_Llama': {'win_size': 96},
     'Chronos': {'win_size': 100},
+    'Chronos2': {'win_size': 128},
+    'Chronos2Fast': {'win_size': 128},
+    'Chronos2Prob': {'win_size': 128},
     'TimesFM': {'win_size': 96},
     'MOMENT_ZS': {'win_size': 64},
     'MOMENT_FT': {'win_size': 64},
@@ -282,3 +294,5 @@ Optimal_Uni_algo_HP_dict = {
                    'lr': 1e-4},
     'RandomDetector': {'HP': ['HP']},
 }
+
+
