@@ -3,7 +3,7 @@ import math
 from .utils.slidingWindows import find_length_rank
 
 Unsupervise_AD_Pool = ['FFT', 'SR', 'NORMA', 'Series2Graph', 'Sub_IForest', 'IForest', 'LOF', 'Sub_LOF', 'POLY', 'MatrixProfile', 'Sub_PCA', 'PCA', 'HBOS', 
-                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'Chronos2', 'Chronos2Fast', 'Chronos2Prob', 'MOMENT_ZS', 'TSPulse_ZS', 'RandomDetector']
+                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'Chronos2', 'Chronos2Fast', 'Chronos2Prob', 'MOMENT_ZS', 'TSPulse_ZS', 'RandomDetector', 'Moirai2']
 Semisupervise_AD_Pool = ['Left_STAMPi', 'SAND', 'MCD', 'Sub_MCD', 'OCSVM', 'Sub_OCSVM', 'AutoEncoder', 'CNN', 'LSTMAD', 'TranAD', 'USAD', 'OmniAnomaly', 
                         'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', 'TSPulse_FT']
 
@@ -355,6 +355,29 @@ def run_Lag_Llama(data, win_size=96, batch_size=64):
 def run_Chronos(data, win_size=50, batch_size=64):
     from .models.Chronos import Chronos
     clf = Chronos(win_size=win_size, prediction_length=1, input_c=data.shape[1], model_size='base', batch_size=batch_size)
+    clf.fit(data)
+    score = clf.decision_scores_
+    return score.ravel()
+
+def run_Moirai2(
+    data,
+    win_size=128,
+    prediction_length=1,
+    batch_size=32,
+    model_id="Salesforce/moirai-2.0-R-small",
+    device=None,
+    freq="h",
+):
+    from .models.Moirai2 import Moirai2
+
+    clf = Moirai2(
+        win_size=win_size,
+        prediction_length=prediction_length,
+        batch_size=batch_size,
+        model_id=model_id,
+        device=device,
+        freq=freq,
+    )
     clf.fit(data)
     score = clf.decision_scores_
     return score.ravel()

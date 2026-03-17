@@ -15,3 +15,5 @@ networkx>=3.1
 transformers>=4.38.0
 torch==2.3.0
 chronos-forecasting>=2.0
+gluonts<=0.14.4
+huggingface_hub>=0.24

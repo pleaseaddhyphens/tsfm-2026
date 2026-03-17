@@ -244,7 +244,12 @@ Uni_algo_HP_dict = {
     },
     'RandomDetector': {
         'HP': ['HP']
-    }
+    },
+    'Moirai2': {
+        'win_size': [128],
+        'prediction_length': [1],
+        'batch_size': [32],
+    },
 }
 
 Optimal_Uni_algo_HP_dict = {
@@ -293,6 +298,7 @@ Optimal_Uni_algo_HP_dict = {
                    'prediction_mode': 'time',
                    'lr': 1e-4},
     'RandomDetector': {'HP': ['HP']},
+    'Moirai2': {'win_size': 128, 'prediction_length': 1, 'batch_size': 32},
 }
 
 

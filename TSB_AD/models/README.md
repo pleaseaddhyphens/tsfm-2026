@@ -16,6 +16,12 @@ If you want to use [TimesFM](https://github.com/google-research/timesfm), please
 pip install timesfm[torch]
 ```
 
+If you want to use Moirai2, please install the following
+```bash
+pip install gluonts[torch]<=0.14.4
+pip install git+https://github.com/SalesforceAIResearch/uni2ts.git
+```
+
 If you want to use [TSPulse](https://github.com/ibm-granite/granite-tsfm/tree/main/tsfm_public/models/tspulse), please install the following commands
 ```bash
 git clone "https://github.com/ibm-granite/granite-tsfm.git" 

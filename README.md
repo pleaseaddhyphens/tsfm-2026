@@ -118,5 +118,6 @@ We organize the detection algorithms in TSB-AD in the following three categories
 |OFA|finetunes pre-trained GPT-2 model on time series data while keeping self-attention and feedforward layers of the residual blocks in the pre-trained language frozen.|
 |Lag-Llama|is the first foundation model for univariate probabilistic time series forecasting based on a decoder-only transformer architecture that uses lags as covariates.|
 |Chronos|tokenizes time series values using scaling and quantization into a fixed vocabulary and trains the T5 model on these tokenized time series via the cross-entropy loss.|
+|Moirai2|is a universal transformer-based time-series forecasting foundation model; in this repository it is used in zero-shot mode, where rolling forecasts are converted into anomaly scores via forecast error.|
 |TimesFM|is based on pretraining a decoder-style attention model with input patching, using a large time-series corpus comprising both real-world and synthetic datasets.|
 |MOMENT|is pre-trained T5 encoder based on a masked time-series modeling approach.|
