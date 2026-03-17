@@ -208,6 +208,43 @@ class basic_metricor():
     def metric_PR(self, label, score):
         return metrics.average_precision_score(label, score)
 
+    def metric_ECE(self, label, score, n_bins: int = 10, clip: bool = True):
+        """
+        Expected Calibration Error (ECE).
+
+        Treats `score` as confidence/probability for the positive class (anomaly).
+        If `clip=True`, scores are clipped to [0, 1].
+        """
+        score = np.asarray(score, dtype=float).ravel()
+        label = np.asarray(label, dtype=int).ravel()
+
+        #check input validity
+        if score.shape[0] != label.shape[0]:
+            raise ValueError(f"score and label must have the same length, got {score.shape[0]} vs {label.shape[0]}")
+        if score.size == 0:
+            return float("nan")
+        if n_bins <= 0:
+            raise ValueError(f"n_bins must be > 0, got {n_bins}")
+
+
+        if clip:
+            score = np.clip(score, 0.0, 1.0)
+
+        edges = np.linspace(0.0, 1.0, n_bins + 1)
+        bin_idx = np.clip(np.digitize(score, edges[1:-1], right=False), 0, n_bins - 1)
+
+        ece = 0.0
+        n = float(score.size)
+        for b in range(n_bins):
+            mask = bin_idx == b
+            nb = int(np.sum(mask))
+            if nb == 0:
+                continue
+            conf_b = float(np.mean(score[mask]))
+            acc_b = float(np.mean(label[mask] > 0))
+            ece += (nb / n) * abs(acc_b - conf_b)
+        return float(ece)
+
     def metric_PointF1(self, label, score, preds=None):
         if preds is None:
             precision, recall, thresholds = metrics.precision_recall_curve(label, score)
