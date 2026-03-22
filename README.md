@@ -39,7 +39,7 @@ For instructions on the installation of Foundation Models, please refer to ./TSB
 
 # Basic Usage CLI
 
-It would run PCA algorithm on the `.\Datasets\TSB-AD-U\001_NAB_id_1_Facility_tr_1007_1st_2014.csv` and calculate all defined metrics.
+It would run PCA algorithm on the `.\Datasets\TSB-AD-U\001_NAB_id_1_Facility_tr_1007_1st_2014.csv` and calculate F1, AUC-ROC, ECE.
 
 
 ```bash
@@ -48,7 +48,15 @@ python -m TSB_AD.main --AD_Name Sub_PCA
 
 Output example:
 
-` {'AUC-PR': 0.7956508501129314, 'AUC-ROC': 0.9059292449548768, 'VUS-PR': 0.8136138874982192, 'VUS-ROC': 0.9357317496173422, 'Standard-F1': 0.8284740249663477, 'PA-F1': 1.0, 'Event-based-F1': 0.9999999999999996, 'R-based-F1': 0.759779845496952, 'Affiliation-F': 0.996308430785461}`
+`{'AUC-ROC': 0.5056143002599243, 'Standard-F1': 0.1307901907356948, 'ECE': 0.033128460712657716}`
+
+# Metrics
+
+AUC-ROC - Area Under Curve of Receiver Operating Characteristic.
+
+ECE - Expected Calibration Error, measures the difference between predicted confidence and real frequency of the anomalies. Smaller the value (max 1) the closer predicted confidence to real frequency.
+
+Standard-F1 - harmonic mean of precision and recall for anomaly detection for each point.
 
 
 # How to add new anomaly detector

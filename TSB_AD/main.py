@@ -21,10 +21,6 @@ random.seed(seed)
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
-print("CUDA Available: ", torch.cuda.is_available())
-print("cuDNN Version: ", torch.backends.cudnn.version())
-
-
 if __name__ == '__main__':
 
     ## ArgumentParser
@@ -54,6 +50,11 @@ if __name__ == '__main__':
     if isinstance(output, np.ndarray):
         output = MinMaxScaler(feature_range=(0,1)).fit_transform(output.reshape(-1,1)).ravel()
         evaluation_result = get_metrics(output, label, slidingWindow=slidingWindow, pred=output > (np.mean(output)+3*np.std(output)))
-        print('Evaluation Result: ', evaluation_result)
+        selected_metrics = {
+            'AUC-ROC': evaluation_result.get('AUC-ROC'),
+            'Standard-F1': evaluation_result.get('Standard-F1'),
+            'ECE': evaluation_result.get('ECE')
+        }
+        print(selected_metrics)
     else:
         print(f'At {args.filename}: '+output)
