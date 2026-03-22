@@ -36,7 +36,9 @@ def get_metrics(score, labels, slidingWindow=100, pred=None, version='opt', thre
     metrics['Event-based-F1'] = EventF1PA
     metrics['R-based-F1'] = RF1
     metrics['Affiliation-F'] = Affiliation_F
-    metrics['ECE'] = grader.metric_ECE(labels, score, n_bins=10, clip=True)
+    metrics['ECE'] = grader.metric_ECE(
+        labels, score, n_bins=10, clip=True, from_raw_score=True
+    )
     return metrics
 
 
@@ -61,6 +63,8 @@ def get_metrics_pred(score, labels, pred, slidingWindow=100):
     metrics['VUS-Recall'] = VUS_R
     metrics['VUS-Precision'] = VUS_P
     metrics['VUS-F'] = VUS_F
-    metrics['ECE'] = grader.metric_ECE(labels, score, n_bins=10, clip=True)
+    metrics['ECE'] = grader.metric_ECE(
+        labels, score, n_bins=10, clip=True, from_raw_score=True
+    )
 
     return metrics

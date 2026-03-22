@@ -208,12 +208,26 @@ class basic_metricor():
     def metric_PR(self, label, score):
         return metrics.average_precision_score(label, score)
 
-    def metric_ECE(self, label, score, n_bins: int = 10, clip: bool = True):
+    def metric_ECE(
+        self,
+        label,
+        score,
+        n_bins: int = 10,
+        clip: bool = True,
+        from_raw_score: bool = True,
+    ):
         """
         Expected Calibration Error (ECE).
 
-        Treats `score` as confidence/probability for the positive class (anomaly).
-        If `clip=True`, scores are clipped to [0, 1].
+        Unsupervised detectors usually return a raw anomaly score (e.g. reconstruction
+        MSE), not a probability. With ``from_raw_score=True`` (default), scores are
+        mapped to pseudo-probabilities with min–max on the given series: lowest score
+        → 0, highest → 1, then ECE compares bin-mean confidence to the empirical
+        fraction of anomalies in each bin.
+
+        Set ``from_raw_score=False`` if ``score`` is already a probability or
+        confidence in [0, 1]. If ``clip=True``, values are clipped to [0, 1] after
+        any transform (handles numeric edge cases).
         """
         score = np.asarray(score, dtype=float).ravel()
         label = np.asarray(label, dtype=int).ravel()
@@ -226,21 +240,30 @@ class basic_metricor():
         if n_bins <= 0:
             raise ValueError(f"n_bins must be > 0, got {n_bins}")
 
+        if from_raw_score:
+            lo = float(np.min(score))
+            hi = float(np.max(score))
+            if hi - lo <= self.eps:
+                prob = np.full_like(score, 0.5)
+            else:
+                prob = (score - lo) / (hi - lo)
+        else:
+            prob = score
 
         if clip:
-            score = np.clip(score, 0.0, 1.0)
+            prob = np.clip(prob, 0.0, 1.0)
 
         edges = np.linspace(0.0, 1.0, n_bins + 1)
-        bin_idx = np.clip(np.digitize(score, edges[1:-1], right=False), 0, n_bins - 1)
+        bin_idx = np.clip(np.digitize(prob, edges[1:-1], right=False), 0, n_bins - 1)
 
         ece = 0.0
-        n = float(score.size)
+        n = float(prob.size)
         for b in range(n_bins):
             mask = bin_idx == b
             nb = int(np.sum(mask))
             if nb == 0:
                 continue
-            conf_b = float(np.mean(score[mask]))
+            conf_b = float(np.mean(prob[mask]))
             acc_b = float(np.mean(label[mask] > 0))
             ece += (nb / n) * abs(acc_b - conf_b)
         return float(ece)
