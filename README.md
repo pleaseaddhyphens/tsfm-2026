@@ -50,6 +50,25 @@ Output example:
 
 `{'AUC-ROC': 0.5056143002599243, 'Standard-F1': 0.1307901907356948, 'ECE': 0.033128460712657716}`
 
+# Batch Evaluation CLI
+
+To run `moirari2`, `POLY`, `IFOREST`, and `SUB_PCA` from the command line on `Datasets/File_List/no_seq_anomaly_files.csv` and print the mean `F1`, `ROC-AUC`, and `ECE` across all files, run:
+
+```bash
+python benchmark_exp/Run_Detector_U.py --AD_Name moirari2 POLY IFOREST SUB_PCA
+```
+
+By default, `Run_Detector_U.py` uses `Datasets/TSB-AD-U/` together with `Datasets/File_List/no_seq_anomaly_files.csv` and prints one summary line per detector with the averaged metrics.
+
+Example output format:
+
+```text
+Moirai2 mean metrics across N files: F1=..., ROC-AUC=..., ECE=...
+POLY mean metrics across N files: F1=..., ROC-AUC=..., ECE=...
+IForest mean metrics across N files: F1=..., ROC-AUC=..., ECE=...
+Sub_PCA mean metrics across N files: F1=..., ROC-AUC=..., ECE=...
+```
+
 # Metrics
 
 AUC-ROC - Area Under Curve of Receiver Operating Characteristic.

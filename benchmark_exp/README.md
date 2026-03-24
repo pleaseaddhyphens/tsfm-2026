@@ -3,6 +3,8 @@
 * Hper-parameter Tuning: HP_Tuning_U/M.py
 
 * Benchmark Evaluation: Run_Detector_U/M.py
+    * Example: `python benchmark_exp/Run_Detector_U.py --AD_Name POLY IFOREST SUB_PCA moirari2`
+    * By default `Run_Detector_U.py` uses `Datasets/File_List/no_seq_anomaly_files.csv` and prints mean `F1`, `ROC-AUC`, `ECE` across all files.
 
 * `benchmark_eval_results/`: Evaluation results of anomaly detectors across different time series in TSB-AD
     * All time series are normalized by z-score by default

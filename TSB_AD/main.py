@@ -3,7 +3,6 @@
 # License: Apache-2.0 License
 
 import pandas as pd
-import torch
 import random, argparse
 from sklearn.preprocessing import MinMaxScaler
 from .evaluation.metrics import get_metrics
@@ -11,15 +10,21 @@ from .utils.slidingWindows import find_length_rank
 from .model_wrapper import *
 from .HP_list import Optimal_Uni_algo_HP_dict
 
+try:
+    import torch
+except ModuleNotFoundError:
+    torch = None
+
 # seeding
 seed = 2024
-torch.manual_seed(seed)
-torch.cuda.manual_seed(seed)
-torch.cuda.manual_seed_all(seed)
 np.random.seed(seed)
 random.seed(seed)
-torch.backends.cudnn.benchmark = False
-torch.backends.cudnn.deterministic = True
+if torch is not None:
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
 
 if __name__ == '__main__':
 
@@ -30,6 +35,12 @@ if __name__ == '__main__':
     parser.add_argument('--save', type=bool, default=False)
     parser.add_argument('--AD_Name', type=str, default='IForest')
     args = parser.parse_args()
+
+    canonical_ad_name = resolve_model_name(args.AD_Name)
+    if canonical_ad_name is None:
+        available = ', '.join(get_supported_model_names())
+        raise ValueError(f"Unknown AD_Name '{args.AD_Name}'. Available models: {available}")
+    args.AD_Name = canonical_ad_name
 
     df = pd.read_csv(args.data_direc + args.filename).dropna()
     data = df.iloc[:, 0:-1].values.astype(float)

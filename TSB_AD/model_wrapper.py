@@ -1,11 +1,40 @@
 import numpy as np
 import math
+import re
 from .utils.slidingWindows import find_length_rank
 
 Unsupervise_AD_Pool = ['FFT', 'SR', 'NORMA', 'Series2Graph', 'Sub_IForest', 'IForest', 'LOF', 'Sub_LOF', 'POLY', 'MatrixProfile', 'Sub_PCA', 'PCA', 'HBOS', 
                         'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'Chronos2', 'Chronos2Fast', 'Chronos2Prob', 'MOMENT_ZS', 'TSPulse_ZS', 'RandomDetector', 'Moirai2']
 Semisupervise_AD_Pool = ['Left_STAMPi', 'SAND', 'MCD', 'Sub_MCD', 'OCSVM', 'Sub_OCSVM', 'AutoEncoder', 'CNN', 'LSTMAD', 'TranAD', 'USAD', 'OmniAnomaly', 
                         'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', 'TSPulse_FT']
+
+
+def _normalize_model_key(model_name):
+    return re.sub(r'[^a-z0-9]+', '', str(model_name).lower())
+
+
+def _build_model_name_lookup():
+    lookup = {}
+    for model_name in Unsupervise_AD_Pool + Semisupervise_AD_Pool:
+        lookup[_normalize_model_key(model_name)] = model_name
+
+    # Common misspellings / alternate CLI spellings.
+    lookup['moirari2'] = 'Moirai2'
+
+    return lookup
+
+
+MODEL_NAME_LOOKUP = _build_model_name_lookup()
+
+
+def resolve_model_name(model_name):
+    if model_name in MODEL_NAME_LOOKUP.values():
+        return model_name
+    return MODEL_NAME_LOOKUP.get(_normalize_model_key(model_name))
+
+
+def get_supported_model_names():
+    return sorted(set(MODEL_NAME_LOOKUP.values()))
 
 def run_Unsupervise_AD(model_name, data, **kwargs):
     try:
