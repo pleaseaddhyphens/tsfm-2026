@@ -10,7 +10,7 @@ eval/metrics
 eval/score
 
 .DS_Store
-venv/
+venv
 __pycache__/
 *.pyc
 
