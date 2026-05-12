@@ -8,6 +8,7 @@ TSB_AD/models/NormA.py
 TSB_AD/models/Series2Graph.py
 eval/metrics
 eval/score
+eval/dashboard
 
 .DS_Store
 venv
@@ -16,3 +17,5 @@ __pycache__/
 
 build/
 *.egg-info
+
+build_results_dashboard.py

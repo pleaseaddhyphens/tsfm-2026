@@ -3,8 +3,15 @@ import math
 import re
 from .utils.slidingWindows import find_length_rank
 
+# Cache heavyweight HF pipelines across files within a single process.
+# This avoids re-downloading / re-loading Chronos2 models for every dataset file.
+_CHRONOS2FAST_CACHE = {}
+_CHRONOS2FAST_PREDICT_CACHE = {}
+_CHRONOS2FAST_PREDICT_MV_CACHE = {}
+_CHRONOS2PROB_CACHE = {}
+
 Unsupervise_AD_Pool = ['FFT', 'SR', 'NORMA', 'Series2Graph', 'Sub_IForest', 'IForest', 'LOF', 'Sub_LOF', 'POLY', 'MatrixProfile', 'Sub_PCA', 'PCA', 'HBOS', 
-                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'Chronos2', 'Chronos2Fast', 'Chronos2Prob', 'MOMENT_ZS', 'TSPulse_ZS', 'RandomDetector', 'Moirai2']
+                        'Sub_HBOS', 'KNN', 'Sub_KNN','KMeansAD', 'KMeansAD_U', 'KShapeAD', 'COPOD', 'CBLOF', 'COF', 'EIF', 'RobustPCA', 'Lag_Llama', 'TimesFM', 'Chronos', 'Chronos2', 'Chronos2Fast', 'Chronos2FastPredict', 'Chronos2FastPredictMean', 'Chronos2FastPredictMax', 'Chronos2Prob', 'MOMENT_ZS', 'TSPulse_ZS', 'RandomDetector', 'Moirai2']
 Semisupervise_AD_Pool = ['Left_STAMPi', 'SAND', 'MCD', 'Sub_MCD', 'OCSVM', 'Sub_OCSVM', 'AutoEncoder', 'CNN', 'LSTMAD', 'TranAD', 'USAD', 'OmniAnomaly', 
                         'AnomalyTransformer', 'TimesNet', 'FITS', 'Donut', 'OFA', 'MOMENT_FT', 'M2N2', 'TSPulse_FT']
 
@@ -550,12 +557,16 @@ def run_Chronos2(data, win_size=128, stride=1, device="cpu"):
 def run_Chronos2Fast(data, win_size=128, stride=1, device="cpu"):
     from .models.Chronos2Fast import Chronos2Fast
 
-    detector = Chronos2Fast(
-        context_len=win_size,
-        pred_len=1,
-        stride=stride,
-        device=device
-    )
+    cache_key = (win_size, 1, stride, device)
+    detector = _CHRONOS2FAST_CACHE.get(cache_key)
+    if detector is None:
+        detector = Chronos2Fast(
+            context_len=win_size,
+            pred_len=1,
+            stride=stride,
+            device=device,
+        )
+        _CHRONOS2FAST_CACHE[cache_key] = detector
 
     scores = detector.score(data[:, 0])
 
@@ -564,17 +575,85 @@ def run_Chronos2Fast(data, win_size=128, stride=1, device="cpu"):
 
     return padded.ravel()
 
+def run_Chronos2FastPredict(data, win_size=128, stride=1, device="cpu", batch_size=256):
+    from .models.Chronos2FastPredict import Chronos2FastPredict
+
+    cache_key = (win_size, 1, stride, device, batch_size)
+    detector = _CHRONOS2FAST_PREDICT_CACHE.get(cache_key)
+    if detector is None:
+        detector = Chronos2FastPredict(
+            context_len=win_size,
+            pred_len=1,
+            stride=stride,
+            batch_size=batch_size,
+            device=device,
+        )
+        _CHRONOS2FAST_PREDICT_CACHE[cache_key] = detector
+
+    scores = detector.score(data[:, 0])
+    padded = np.zeros(len(data))
+    padded[win_size:] = scores
+    return padded.ravel()
+
+
+def run_Chronos2FastPredictMean(data, win_size=128, stride=1, device="cpu", batch_size=256):
+    from .models.Chronos2FastPredict import Chronos2FastPredictMV
+
+    cache_key = (win_size, 1, stride, device, batch_size, "mean")
+    detector = _CHRONOS2FAST_PREDICT_MV_CACHE.get(cache_key)
+    if detector is None:
+        detector = Chronos2FastPredictMV(
+            context_len=win_size,
+            pred_len=1,
+            stride=stride,
+            batch_size=batch_size,
+            device=device,
+            agg="mean",
+        )
+        _CHRONOS2FAST_PREDICT_MV_CACHE[cache_key] = detector
+
+    scores = detector.score(data)
+    padded = np.zeros(len(data))
+    padded[win_size:] = scores
+    return padded.ravel()
+
+
+def run_Chronos2FastPredictMax(data, win_size=128, stride=1, device="cpu", batch_size=256):
+    from .models.Chronos2FastPredict import Chronos2FastPredictMV
+
+    cache_key = (win_size, 1, stride, device, batch_size, "max")
+    detector = _CHRONOS2FAST_PREDICT_MV_CACHE.get(cache_key)
+    if detector is None:
+        detector = Chronos2FastPredictMV(
+            context_len=win_size,
+            pred_len=1,
+            stride=stride,
+            batch_size=batch_size,
+            device=device,
+            agg="max",
+        )
+        _CHRONOS2FAST_PREDICT_MV_CACHE[cache_key] = detector
+
+    scores = detector.score(data)
+    padded = np.zeros(len(data))
+    padded[win_size:] = scores
+    return padded.ravel()
+
 
 def run_Chronos2Prob(data, win_size=128, stride=1, device="cpu"):
     from .models.Chronos2AnomalyDetector import Chronos2AnomalyDetector
 
-    detector = Chronos2AnomalyDetector(
-        context_len=win_size,
-        pred_len=1,
-        stride=stride,
-        device=device,
-        probabilistic=True
-    )
+    cache_key = (win_size, 1, stride, device, True)
+    detector = _CHRONOS2PROB_CACHE.get(cache_key)
+    if detector is None:
+        detector = Chronos2AnomalyDetector(
+            context_len=win_size,
+            pred_len=1,
+            stride=stride,
+            device=device,
+            probabilistic=True,
+        )
+        _CHRONOS2PROB_CACHE[cache_key] = detector
 
     scores = detector.score(data[:, 0])
 

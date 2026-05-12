@@ -15,7 +15,7 @@ from .base import BaseDetector
 class Chronos(BaseDetector):
     def __init__(self, 
                  win_size=100,
-                 model_size = 'base',  # [tiny, small, base]
+                 model_size = 'tiny',  # [tiny, small, base]
                  prediction_length=1, 
                  input_c=1, 
                  batch_size=128):

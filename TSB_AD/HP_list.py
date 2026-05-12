@@ -112,7 +112,9 @@ Optimal_Multi_algo_HP_dict = {
     'Donut': {'win_size': 60, 'lr': 0.001},  
     'TimesNet': {'win_size': 96, 'lr': 0.0001},
     'FITS': {'win_size': 100, 'lr': 0.001},
-    'OFA': {'win_size': 50}
+    'OFA': {'win_size': 50},
+    'Chronos2FastPredictMean': {'win_size': 128, 'device': 'cuda', 'batch_size': 256},
+    'Chronos2FastPredictMax': {'win_size': 128, 'device': 'cuda', 'batch_size': 256},
 }
 
 
@@ -230,6 +232,15 @@ Uni_algo_HP_dict = {
     'Chronos2Fast': {
         'win_size': [50, 100, 150]
     },
+    'Chronos2FastPredict': {
+        'win_size': [50, 100, 150]
+    },
+    'Chronos2FastPredictMean': {
+        'win_size': [50, 100, 150]
+    },
+    'Chronos2FastPredictMax': {
+        'win_size': [50, 100, 150]
+    },
     'Chronos2Prob': {
         'win_size': [50, 100, 150]
     },
@@ -286,8 +297,11 @@ Optimal_Uni_algo_HP_dict = {
     'Lag_Llama': {'win_size': 96},
     'Chronos': {'win_size': 100},
     'Chronos2': {'win_size': 128},
-    'Chronos2Fast': {'win_size': 128},
-    'Chronos2Prob': {'win_size': 128},
+    'Chronos2Fast': {'win_size': 128, 'device': 'cuda'},
+    'Chronos2FastPredict': {'win_size': 128, 'device': 'cuda', 'batch_size': 256},
+    'Chronos2FastPredictMean': {'win_size': 128, 'device': 'cuda', 'batch_size': 256},
+    'Chronos2FastPredictMax': {'win_size': 128, 'device': 'cuda', 'batch_size': 256},
+    'Chronos2Prob': {'win_size': 128, 'device': 'cuda'},
     'TimesFM': {'win_size': 96},
     'MOMENT_ZS': {'win_size': 64},
     'MOMENT_FT': {'win_size': 64},
@@ -300,5 +314,3 @@ Optimal_Uni_algo_HP_dict = {
     'RandomDetector': {'HP': ['HP']},
     'Moirai2': {'win_size': 128, 'prediction_length': 1, 'batch_size': 32},
 }
-
-

@@ -268,6 +268,174 @@ class basic_metricor():
             ece += (nb / n) * abs(acc_b - conf_b)
         return float(ece)
 
+    def _to_probability(self, score, clip=True, from_raw_score=True):
+        score = np.asarray(score, dtype=float).ravel()
+        if from_raw_score:
+            lo = float(np.min(score))
+            hi = float(np.max(score))
+            if hi - lo <= self.eps:
+                prob = np.full_like(score, 0.5, dtype=float)
+            else:
+                prob = (score - lo) / (hi - lo)
+        else:
+            prob = score.copy()
+        if clip:
+            prob = np.clip(prob, 0.0, 1.0)
+        return prob
+
+    def _bin_stats_uniform(self, label, prob, n_bins=10):
+        edges = np.linspace(0.0, 1.0, n_bins + 1)
+        bin_idx = np.clip(np.digitize(prob, edges[1:-1], right=False), 0, n_bins - 1)
+        stats = []
+        n = float(prob.size)
+        for b in range(n_bins):
+            mask = bin_idx == b
+            nb = int(np.sum(mask))
+            if nb == 0:
+                continue
+            conf_b = float(np.mean(prob[mask]))
+            acc_b = float(np.mean(label[mask] > 0))
+            weight = nb / n
+            stats.append((weight, abs(acc_b - conf_b)))
+        return stats
+
+    def _bin_stats_adaptive(self, label, prob, n_bins=10):
+        order = np.argsort(prob)
+        y = (label[order] > 0).astype(float)
+        p = prob[order]
+        n = prob.size
+        n_bins = max(1, min(int(n_bins), int(n)))
+        stats = []
+        for chunk in np.array_split(np.arange(n), n_bins):
+            if len(chunk) == 0:
+                continue
+            conf_b = float(np.mean(p[chunk]))
+            acc_b = float(np.mean(y[chunk]))
+            weight = float(len(chunk)) / float(n)
+            stats.append((weight, abs(acc_b - conf_b)))
+        return stats
+
+    def metric_MCE(
+        self,
+        label,
+        score,
+        n_bins: int = 10,
+        clip: bool = True,
+        from_raw_score: bool = True,
+    ):
+        prob = self._to_probability(score, clip=clip, from_raw_score=from_raw_score)
+        label = np.asarray(label, dtype=int).ravel()
+        stats = self._bin_stats_uniform(label, prob, n_bins=n_bins)
+        if len(stats) == 0:
+            return float("nan")
+        return float(max(gap for _, gap in stats))
+
+    def metric_AdaptiveECE(
+        self,
+        label,
+        score,
+        n_bins: int = 10,
+        clip: bool = True,
+        from_raw_score: bool = True,
+    ):
+        prob = self._to_probability(score, clip=clip, from_raw_score=from_raw_score)
+        label = np.asarray(label, dtype=int).ravel()
+        stats = self._bin_stats_adaptive(label, prob, n_bins=n_bins)
+        if len(stats) == 0:
+            return float("nan")
+        return float(sum(weight * gap for weight, gap in stats))
+
+    def metric_Brier(
+        self,
+        label,
+        score,
+        clip: bool = True,
+        from_raw_score: bool = True,
+    ):
+        prob = self._to_probability(score, clip=clip, from_raw_score=from_raw_score)
+        label = (np.asarray(label, dtype=int).ravel() > 0).astype(float)
+        return float(np.mean((prob - label) ** 2))
+
+    def metric_NLL(
+        self,
+        label,
+        score,
+        clip: bool = True,
+        from_raw_score: bool = True,
+    ):
+        prob = self._to_probability(score, clip=clip, from_raw_score=from_raw_score)
+        label = (np.asarray(label, dtype=int).ravel() > 0).astype(float)
+        prob = np.clip(prob, self.eps, 1.0 - self.eps)
+        nll = -(label * np.log(prob) + (1.0 - label) * np.log(1.0 - prob))
+        return float(np.mean(nll))
+
+    def metric_Sharpness(
+        self,
+        score,
+        clip: bool = True,
+        from_raw_score: bool = True,
+    ):
+        prob = self._to_probability(score, clip=clip, from_raw_score=from_raw_score)
+        return float(np.std(prob))
+
+    def metric_error_detection_auc(self, label, preds, uncertainty):
+        label = (np.asarray(label, dtype=int).ravel() > 0).astype(int)
+        preds = (np.asarray(preds).ravel() > 0).astype(int)
+        uncertainty = np.asarray(uncertainty, dtype=float).ravel()
+        errors = (preds != label).astype(int)
+        if np.unique(errors).size < 2:
+            return float("nan")
+        return float(metrics.roc_auc_score(errors, uncertainty))
+
+    def metric_AURC_EAURC(self, label, preds, uncertainty):
+        label = (np.asarray(label, dtype=int).ravel() > 0).astype(int)
+        preds = (np.asarray(preds).ravel() > 0).astype(int)
+        uncertainty = np.asarray(uncertainty, dtype=float).ravel()
+        if len(label) == 0:
+            return float("nan"), float("nan")
+        errors = (preds != label).astype(float)
+        order = np.argsort(uncertainty)  # most certain first
+        e_sorted = errors[order]
+        cumsum_err = np.cumsum(e_sorted)
+        k = np.arange(1, len(e_sorted) + 1, dtype=float)
+        risk_curve = cumsum_err / k
+        aurc = float(np.mean(risk_curve))
+
+        best_sorted = np.sort(errors)
+        best_cumsum_err = np.cumsum(best_sorted)
+        best_risk_curve = best_cumsum_err / k
+        best_aurc = float(np.mean(best_risk_curve))
+        eaurc = float(aurc - best_aurc)
+        return aurc, eaurc
+
+    def metric_uncertainty_suite(
+        self,
+        label,
+        score,
+        n_bins: int = 10,
+        clip: bool = True,
+        from_raw_score: bool = True,
+        pred_threshold: float = 0.5,
+    ):
+        label = np.asarray(label, dtype=int).ravel()
+        prob = self._to_probability(score, clip=clip, from_raw_score=from_raw_score)
+        preds = (prob >= float(pred_threshold)).astype(int)
+        confidence = np.maximum(prob, 1.0 - prob)
+        uncertainty = 1.0 - confidence
+        aurc, eaurc = self.metric_AURC_EAURC(label, preds, uncertainty)
+
+        return {
+            'ECE': float(self.metric_ECE(label, score, n_bins=n_bins, clip=clip, from_raw_score=from_raw_score)),
+            'MCE': float(self.metric_MCE(label, score, n_bins=n_bins, clip=clip, from_raw_score=from_raw_score)),
+            'Adaptive-ECE': float(self.metric_AdaptiveECE(label, score, n_bins=n_bins, clip=clip, from_raw_score=from_raw_score)),
+            'Brier': float(self.metric_Brier(label, score, clip=clip, from_raw_score=from_raw_score)),
+            'NLL': float(self.metric_NLL(label, score, clip=clip, from_raw_score=from_raw_score)),
+            'Sharpness-Std': float(self.metric_Sharpness(score, clip=clip, from_raw_score=from_raw_score)),
+            'ErrDet-AUROC': float(self.metric_error_detection_auc(label, preds, uncertainty)),
+            'AURC': float(aurc),
+            'EAURC': float(eaurc),
+        }
+
     def metric_PointF1(self, label, score, preds=None):
         if preds is None:
             precision, recall, thresholds = metrics.precision_recall_curve(label, score)
@@ -401,7 +569,7 @@ class basic_metricor():
                 tp = np.sum([preds[start:end + 1].any() for start, end in true_events.values()])
                 fn = len(true_events) - tp
                 rec_e = tp/(tp + fn)
-                prec_t = precision_score(label, preds)
+                prec_t = precision_score(label, preds, zero_division=0)
                 EventF1PA = 2 * rec_e * prec_t / (rec_e + prec_t + self.eps)
 
                 EventF1PA_scores.append(EventF1PA)
@@ -414,7 +582,7 @@ class basic_metricor():
             tp = np.sum([preds[start:end + 1].any() for start, end in true_events.values()])
             fn = len(true_events) - tp
             rec_e = tp/(tp + fn)
-            prec_t = precision_score(label, preds)
+            prec_t = precision_score(label, preds, zero_division=0)
             EventF1PA1 = 2 * rec_e * prec_t / (rec_e + prec_t + self.eps)
 
         return EventF1PA1
